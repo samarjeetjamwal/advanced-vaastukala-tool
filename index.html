@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="World's Most Advanced Vaastukala & Vastu Shastra Calculator - Fully Responsive, Interactive Mandala, Aayadi Calculations & Remedies">
+    <title>Advanced Vaastukala & Vastu Planner 2025</title>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #006064;
+            --accent: #ff9800;
+            --good: #c8e6c9;
+            --neutral: #fff9c4;
+            --bad: #ffcdd2;
+            --bg-light: #f0f8ff;
+            --text-dark: #333;
+            --text-light: #eee;
+        }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: linear-gradient(to bottom, var(--bg-light), #e0f7fa); 
+            color: var(--text-dark); 
+            margin: 0; 
+            padding: 0; 
+            min-height: 100vh;
+            transition: background 0.5s, color 0.5s;
+        }
+        body.dark { 
+            background: linear-gradient(to bottom, #000, #111); 
+            color: var(--text-light); 
+        }
+        h1, h2 { text-align: center; color: var(--primary); margin: 20px 0; }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .section { 
+            margin-bottom: 40px; 
+            padding: 20px; 
+            border-radius: 15px; 
+            background: #ffffff; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+            position: relative;
+        }
+        body.dark .section { background: #1e1e1e; box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover { background: #004d40; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        button:active { transform: translateY(0); }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            font-size: 15px;
+        }
+        th, td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd; 
+        }
+        th { background: var(--primary); color: white; }
+        .good { background: var(--good); }
+        .neutral { background: var(--neutral); }
+        .bad { background: var(--bad); font-weight: bold; }
+
+        #canvas-container { 
+            text-align: center; 
+            margin: 30px 0; 
+            width: 100%; 
+            overflow: hidden;
+        }
+        canvas { 
+            border: 3px dashed var(--primary); 
+            background: #fff; 
+            max-width: 100%; 
+            height: auto; 
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        body.dark canvas { background: #333; }
+
+        .compass { 
+            width: min(90vw, 400px); 
+            height: min(90vw, 400px); 
+            margin: 30px auto; 
+            position: relative; 
+            background: radial-gradient(circle, #fff, #f0f0f0); 
+            border-radius: 50%; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+        }
+        body.dark .compass { background: radial-gradient(circle, #444, #222); }
+        .zone { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); 
+            transform-origin: center; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        body.dark .zone { color: #fff; }
+        .zone:hover { opacity: 0.8; }
+
+        .report { 
+            background: #eef; 
+            padding: 25px; 
+            border-radius: 15px; 
+            white-space: pre-wrap; 
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        body.dark .report { background: #333; }
+
+        .toggle { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: var(--accent); 
+            padding: 12px 20px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+
+        .tools { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            margin: 20px 0; 
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .section { padding: 15px; }
+            h1 { font-size: 1.8em; }
+            h2 { font-size: 1.5em; }
+            .toggle { top: 10px; right: 10px; padding: 10px 15px; font-size: 14px; }
+            .compass { width: 300px; height: 300px; }
+            .zone div { font-size: 12px; }
+        }
+        @media (max-width: 480px) {
+            .input-grid { grid-template-columns: 1fr; }
+            button { width: 100%; margin: 10px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle" onclick="toggleDark()">Dark Mode</div>
+
+    <div class="container">
+        <h1>Advanced Vaastukala & Vastu Planner</h1>
+        <p style="text-align:center; font-size:18px;">The most responsive, accurate, and interactive single-file Vastu tool. Works perfectly on mobile, tablet, and desktop.</p>
+
+        <div class="section">
+            <h2>1. Building Details</h2>
+            <div class="input-grid">
+                <div>
+                    <label>Unit</label>
+                    <select id="unit" onchange="calculateAll()">
+                        <option value="ft">Feet</option>
+                        <option value="m">Meters</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Length (longer side)</label>
+                    <input type="number" id="length" value="50" step="0.01" oninput="calculateAll()">
+                </div>
+                <div>
+                    <label>Breadth (shorter side)</label>
+                    <input type="number" id="breadth" value="30" step="0.01" oninput="calculateAll()">
+                </div>
+                <div>
+                    <label>Height</label>
+                    <input type="number" id="height" value="12" step="0.01" oninput="calculateAll()">
+                </div>
+                <div>
+                    <label>Main Entrance Direction</label>
+                    <select id="entrance" onchange="calculateAll()">
+                        <option value="N">North</option>
+                        <option value="NNE">North-NorthEast</option>
+                        <option value="NE">NorthEast (Best)</option>
+                        <option value="ENE">East-NorthEast</option>
+                        <option value="E">East (Good)</option>
+                        <option value="ESE">East-SouthEast</option>
+                        <option value="SE">SouthEast</option>
+                        <option value="SSE">South-SouthEast</option>
+                        <option value="S">South</option>
+                        <option value="SSW">South-SouthWest</option>
+                        <option value="SW">SouthWest</option>
+                        <option value="WSW">West-SouthWest</option>
+                        <option value="W">West</option>
+                        <option value="WNW">West-NorthWest</option>
+                        <option value="NW">NorthWest</option>
+                        <option value="NNW">North-NorthWest</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Owner's Birth Nakshatra (Optional)</label>
+                    <select id="nakshatra" onchange="calculateAll()">
+                        <option value="">None</option>
+                        <option>Ashwini</option><option>Bharani</option><option>Krittika</option><option>Rohini</option>
+                        <option>Mrigashira</option><option>Ardra</option><option>Punarvasu</option><option>Pushya</option>
+                        <option>Ashlesha</option><option>Magha</option><option>Purva Phalguni</option><option>Uttara Phalguni</option>
+                        <option>Hasta</option><option>Chitra</option><option>Swati</option><option>Vishakha</option>
+                        <option>Anuradha</option><option>Jyeshtha</option><option>Mula</option><option>Purva Ashadha</option>
+                        <option>Uttara Ashadha</option><option>Shravana</option><option>Dhanishta</option><option>Shatabhisha</option>
+                        <option>Purva Bhadrapada</option><option>Uttara Bhadrapada</option><option>Revati</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. Aayadi Calculations (Real-Time)</h2>
+            <div id="aayadi-results"></div>
+        </div>
+
+        <div class="section">
+            <h2>3. Interactive Vastu Zones Compass</h2>
+            <div class="compass" id="compass"></div>
+            <p style="text-align:center;">Tap any zone to see ideal room placements</p>
+        </div>
+
+        <div class="section">
+            <h2>4. Floor Plan Planner</h2>
+            <input type="file" id="floorplan" accept="image/*" style="margin-bottom:15px;">
+            <div id="canvas-container">
+                <canvas id="canvas" width="800" height="600"></canvas>
+            </div>
+            <div class="tools">
+                <select id="roomType">
+                    <option>Kitchen</option>
+                    <option>Master Bedroom</option>
+                    <option>Pooja Room</option>
+                    <option>Living Room</option>
+                    <option>Guest Room</option>
+                    <option>Toilet</option>
+                    <option>Study</option>
+                </select>
+                <button onclick="addRoom()">Add Room</button>
+                <button onclick="canvas.clear(); drawGrid();">Clear All</button>
+                <button onclick="canvas.isDrawingMode = !canvas.isDrawingMode">
+                    Free Draw: <span id="drawMode">OFF</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>5. Final Vastu Report</h2>
+            <div class="report" id="report"></div>
+            <div style="text-align:center; margin-top:20px;">
+                <button onclick="generatePDF()">Download PDF Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas = new fabric.Canvas('canvas', { 
+            isDrawingMode: false,
+            backgroundColor: '#fff'
+        });
+        let isDark = false;
+
+        function toggleDark() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark');
+            canvas.setBackgroundColor(isDark ? '#333' : '#fff');
+            canvas.renderAll();
+        }
+
+        const zones = [
+            {name: 'N', deg: 0, ideal: 'Wealth, Treasury, Office', color: '#80deea'},
+            {name: 'NNE', deg: 22.5, ideal: 'Learning, Knowledge', color: '#a5d6a7'},
+            {name: 'NE', deg: 45, ideal: 'Pooja Room, Water\n(Highest Priority)', color: '#81c784'},
+            {name: 'ENE', deg: 67.5, ideal: 'Study, Meditation', color: '#c8e6c9'},
+            {name: 'E', deg: 90, ideal: 'Health, Main Entrance\nLiving Room', color: '#fff59d'},
+            {name: 'ESE', deg: 112.5, ideal: 'Avoid Heavy Items', color: '#ffccbc'},
+            {name: 'SE', deg: 135, ideal: 'Kitchen (Fire Element)', color: '#ff8a65'},
+            {name: 'SSE', deg: 157.5, ideal: 'Strength, Dining', color: '#ffab91'},
+            {name: 'S', deg: 180, ideal: 'Stability, Storage', color: '#ffccbc'},
+            {name: 'SSW', deg: 202.5, ideal: 'Heavy Furniture', color: '#ef9a9a'},
+            {name: 'SW', deg: 225, ideal: 'Master Bedroom\n(Best Direction)', color: '#f48fb1'},
+            {name: 'WSW', deg: 247.5, ideal: 'Toilet, Utility', color: '#ce93d8'},
+            {name: 'W', deg: 270, ideal: 'Family, Guest Room', color: '#b39ddb'},
+            {name: 'WNW', deg: 292.5, ideal: 'Laundry, Kids Room', color: '#9fa8da'},
+            {name: 'NW', deg: 315, ideal: 'Guest Room, Garage\nMovement', color: '#90caf9'},
+            {name: 'NNW', deg: 337.5, ideal: 'Storage, Rest', color: '#a5d6a7'}
+        ];
+
+        function drawCompass() {
+            const compass = document.getElementById('compass');
+            compass.innerHTML = '';
+            zones.forEach(zone => {
+                const div = document.createElement('div');
+                div.className = 'zone';
+                div.style.transform = `rotate(${zone.deg}deg)`;
+                div.style.backgroundColor = zone.color;
+                div.innerHTML = `<div style="transform: rotate(-${zone.deg}deg); padding:10px;">${zone.name}<br><small>${zone.ideal}</small></div>`;
+                div.onclick = () => alert(`Best for: ${zone.ideal}`);
+                compass.appendChild(div);
+            });
+        }
+        drawCompass();
+
+        function drawGrid() {
+            const gridSize = 9;
+            const w = canvas.width;
+            const h = canvas.height;
+            for (let i = 1; i < gridSize; i++) {
+                canvas.add(new fabric.Line([i*w/gridSize, 0, i*w/gridSize, h], { stroke: 'rgba(0,100,100,0.3)', selectable: false }));
+                canvas.add(new fabric.Line([0, i*h/gridSize, w, i*h/gridSize], { stroke: 'rgba(0,100,100,0.3)', selectable: false }));
+            }
+        }
+
+        function calculateAll() {
+            const factor = document.getElementById('unit').value === 'm' ? 3.28084 : 1;
+            let L = parseFloat(document.getElementById('length').value) || 0;
+            let B = parseFloat(document.getElementById('breadth').value) || 0;
+            let H = parseFloat(document.getElementById('height').value) || 0;
+            L *= factor; B *= factor; H *= factor;
+
+            if (L === 0 || B === 0) {
+                document.getElementById('aayadi-results').innerHTML = '<p>Please enter valid dimensions.</p>';
+                return;
+            }
+
+            const perimeter = 2 * (L + B);
+
+            // Authentic Aayadi Formulas (based on traditional sources)
+            const aaya = ((perimeter * 8) / 12) % 12;
+            const vyaya = ((perimeter * 3) / 10) % 12;
+            const yoni = Math.floor((perimeter * 3) / 8) % 8 + 1;
+            const vara = Math.floor((H * 8) / 7) % 7 + 1;
+            const tithi = Math.floor(H * 9 / 30) % 30 + 1;
+            const nak = Math.floor(perimeter * 3 / 27) % 27 + 1;
+
+            const yoniNames = ['Dhwaja (Auspicious)', 'Dhuma (Inauspicious)', 'Simha (Good)', 'Shwan (Bad)', 'Vrishabha (Good)', 'Khara (Bad)', 'Gaja (Good)', 'Kaka (Bad)'];
+            const goodYoni = [1,3,5,7];
+
+            let table = `<table>
+                <tr><th>Parameter</th><th>Value</th><th>Result</th><th>Interpretation</th></tr>
+                <tr class="${aaya > vyaya ? 'good' : 'bad'}"><td>Aaya (Gain)</td><td>${aaya.toFixed(2)}</td><td>${aaya.toFixed(2)}</td><td>${aaya > vyaya ? 'Excellent - Prosperity' : 'Loss likely - Adjust length'}</td></tr>
+                <tr class="${aaya > vyaya ? 'good' : 'bad'}"><td>Vyaya (Loss)</td><td>${vyaya.toFixed(2)}</td><td>${vyaya.toFixed(2)}</td><td></td></tr>
+                <tr class="${goodYoni.includes(yoni) ? 'good' : 'bad'}"><td>Yoni</td><td>${yoni}</td><td>${yoniNames[yoni-1]}</td><td>${goodYoni.includes(yoni) ? 'Auspicious direction' : 'Remedy needed'}</td></tr>
+                <tr><td>Vara (Day)</td><td>${vara}</td><td>${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][vara-1]}</td><td>Auspicious if Mon, Wed, Thu</td></tr>
+                <tr><td>Nakshatra</td><td>${nak}</td><td>Star ${nak}</td><td>Check personal compatibility</td></tr>
+            </table>`;
+
+            if (L/B < 1.3) table += `<p class="bad">Recommendation: Increase length. Ideal ratio 1.3–1.6 for better Aaya.</p>`;
+            document.getElementById('aayadi-results').innerHTML = table;
+
+            // Report
+            let score = 60;
+            if (aaya > vyaya) score += 20;
+            if (goodYoni.includes(yoni)) score += 15;
+            const entrance = document.getElementById('entrance').value;
+            if (['NE','E','N'].includes(entrance)) score += 15;
+
+            let report = `VASTU COMPATIBILITY SCORE: ${score}/100\n\n`;
+            report += `Entrance: ${entrance} → ${['NE','E','N'].includes(entrance) ? 'EXCELLENT CHOICE' : 'Acceptable - Consider remedies'}\n\n`;
+            report += `KEY RECOMMENDATIONS:\n`;
+            report += `• Pooja Room → Northeast (Ishanya)\n`;
+            report += `• Kitchen → Southeast (Agneya)\n`;
+            report += `• Master Bedroom → Southwest (Nairitya)\n`;
+            report += `• Keep Center (Brahmasthan) open and clean\n`;
+            report += `• Main entrance in NE, E, or N is most auspicious\n\n`;
+            if (aaya <= vyaya) report += `REMEDY: Slightly increase length or use wealth yantra in North.\n`;
+            if (!goodYoni.includes(yoni)) report += `REMEDY: Install Vastu pyramid in affected zone.\n`;
+
+            document.getElementById('report').innerText = report;
+        }
+
+        // Initial calculations and grid
+        window.onload = () => {
+            calculateAll();
+            drawGrid();
+            // Resize canvas responsively
+            function resizeCanvas() {
+                const container = document.getElementById('canvas-container');
+                canvas.setWidth(container.clientWidth * 0.95);
+                canvas.setHeight(canvas.getWidth() * 0.75);
+                drawGrid();
+                canvas.renderAll();
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        };
+
+        document.getElementById('floorplan').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                fabric.Image.fromURL(URL.createObjectURL(file), img => {
+                    img.scaleToWidth(canvas.width);
+                    if (img.height > canvas.height) img.scaleToHeight(canvas.height);
+                    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+                });
+            }
+        };
+
+        function addRoom() {
+            const type = document.getElementById('roomType').value;
+            const colors = { Kitchen: '#ff8a65', 'Master Bedroom': '#f48fb1', 'Pooja Room': '#81c784', 'Living Room': '#fff59d' };
+            const rect = new fabric.Rect({
+                left: 100, top: 100,
+                fill: colors[type] || 'rgba(100,200,255,0.4)',
+                width: 200, height: 150,
+                stroke: '#006064', strokeWidth: 4,
+                rx: 10, ry: 10
+            });
+            const text = new fabric.Text(type, {
+                left: 110, top: 110,
+                fontSize: 20, fontWeight: 'bold', fill: 'white', stroke: 'black', strokeWidth: 1
+            });
+            const group = new fabric.Group([rect, text], { selectable: true });
+            canvas.add(group);
+        }
+
+        document.querySelector('[onclick*="Free Draw"]').onclick = function() {
+            canvas.isDrawingMode = !canvas.isDrawingMode;
+            document.getElementById('drawMode').innerText = canvas.isDrawingMode ? 'ON' : 'OFF';
+        };
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(16);
+            doc.text('Advanced Vastu Shastra Report', 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(document.getElementById('report').innerText.split('\n'), 10, 30);
+            doc.addPage();
+            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 140);
+            doc.save('My_Vastu_Report_2025.pdf');
+        }
+    </script>
+  <Footer>@2025 All Rights Reserved. Created By Samar Jeet Jamwal</Footer>
+</body>
+</html>
